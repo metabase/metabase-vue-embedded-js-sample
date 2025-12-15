@@ -6,7 +6,6 @@ const dashboardId = ref('1')
 
 <template>
   <input v-model="dashboardId" placeholder="Dashboard ID" />
-  <h1>hello</h1>
   <metabase-dashboard
     :dashboard-id="dashboardId"
     with-title="true"
