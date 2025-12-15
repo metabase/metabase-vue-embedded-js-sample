@@ -1,148 +1,71 @@
 # Metabase Vue Embedded JS Sample
 
-This sample application demonstrates how to embed Metabase dashboards in a Vue 3 application using the Metabase Embedded Analytics SDK.
+Simple example of embedding Metabase dashboards in Vue 3.
 
-## Overview
+## Important Notes
 
-This project showcases two different approaches to embedding Metabase dashboards:
-
-1. **Declarative Approach** - Uses Vue's template syntax to bind properties to the custom element (recommended)
-2. **Procedural Approach** - Uses Vue's Composition API and direct DOM manipulation for more control
-
-## Prerequisites
-
-- Node.js 18+ and npm
-- A running Metabase instance (default: `http://localhost:3000`)
-- At least one dashboard created in your Metabase instance
+**`<metabase-dashboard>` is a native HTML custom element, NOT a Vue component:**
+- It's loaded from the Metabase SDK script in `index.html`
+- Attribute values must be **strings** (e.g., `with-downloads="false"` not `:with-downloads="false"`)
+- The SDK `<script>` tags must go in `index.html`, not in Vue templates
 
 ## Setup
 
-1. Clone this repository:
-```bash
-git clone <repository-url>
-cd metabase-vue-embedded-js-sample
-```
-
-2. Install dependencies:
+1. Install dependencies:
 ```bash
 npm install
 ```
 
-3. Configure your Metabase instance URL in `index.html`:
+2. Update Metabase URL in `index.html`:
 ```javascript
-defineMetabaseConfig({
-  "useExistingUserSession": true,
-  "instanceUrl": "http://localhost:3000", // Update this to your Metabase URL
-  "theme": {
-    "colors": {
-      "brand": "#8e44ad",
-    },
-  },
-});
+"instanceUrl": "http://localhost:3000"
 ```
 
-4. Update the dashboard ID in `src/App.vue` if needed (default is `1`):
-```vue
-<DeclarativeDashboard
-  :dashboard-id="1"  <!-- Change to your dashboard ID -->
-  :with-title="true"
-  :with-downloads="false"
-  :drills="true"
-/>
-```
-
-## Running the Application
-
-Start the development server:
+3. Run:
 ```bash
 npm run dev
-```
-
-The application will be available at `http://localhost:5173/`
-
-## Building for Production
-
-Build the application:
-```bash
-npm run build
-```
-
-Preview the production build:
-```bash
-npm run preview
 ```
 
 ## Project Structure
 
 ```
-metabase-vue-embedded-js-sample/
 ├── src/
-│   ├── components/
-│   │   ├── DeclarativeDashboard.vue  # Declarative approach component
-│   │   └── ProceduralDashboard.vue   # Procedural approach component
-│   ├── App.vue                        # Main application component
-│   ├── main.ts                        # Application entry point
-│   └── vite-env.d.ts                  # TypeScript declarations
-├── index.html                         # HTML template with Metabase SDK config
-├── vite.config.ts                     # Vite configuration
-├── tsconfig.json                      # TypeScript configuration
-└── package.json                       # Project dependencies
+│   ├── App.vue       # Main component with dashboard
+│   └── main.ts       # Entry point
+├── index.html        # Metabase SDK config and <script> tags
+└── vite.config.ts    # Vite config (registers custom element)
 ```
 
-## Component Props
+## How It Works
 
-Both dashboard components accept the following props:
+1. **index.html** - Metabase SDK is loaded here:
+   ```html
+   <script>
+     function defineMetabaseConfig(config) {
+       window.metabaseConfig = config;
+     }
+   </script>
+   <script>
+     defineMetabaseConfig({ ... });
+   </script>
+   <script defer src="http://localhost:3000/app/embed.js"></script>
+   ```
 
-- `dashboardId` (number, default: 1) - The ID of the Metabase dashboard to display
-- `withTitle` (boolean, default: true) - Show/hide the dashboard title
-- `withDownloads` (boolean, default: false) - Enable/disable download functionality
-- `drills` (boolean, default: true) - Enable/disable drill-down interactions
+2. **vite.config.ts** - Tells Vue to treat `<metabase-dashboard>` as a custom element:
+   ```ts
+   isCustomElement: (tag) => tag === 'metabase-dashboard'
+   ```
 
-## Customization
-
-### Changing Theme Colors
-
-Modify the brand color in `index.html`:
-```javascript
-"theme": {
-  "colors": {
-    "brand": "#your-color-here",
-  },
-}
-```
-
-### Using a Remote Metabase Instance
-
-If your Metabase instance is not on localhost, update the `instanceUrl` in `index.html`:
-```javascript
-defineMetabaseConfig({
-  "useExistingUserSession": true,
-  "instanceUrl": "https://your-metabase-instance.com",
-  // ...
-});
-```
-
-Also update the script source:
-```html
-<script defer src="https://your-metabase-instance.com/app/embed.js"></script>
-```
-
-## Key Differences from Angular Version
-
-This Vue implementation differs from the Angular version in several ways:
-
-1. **Custom Element Registration**: Vue requires custom elements to be registered in `vite.config.ts` using the `isCustomElement` option
-2. **Component API**: Uses Vue's Composition API with `<script setup>` syntax instead of Angular's component decorators
-3. **Property Binding**: Uses Vue's `:prop` syntax instead of Angular's `[attr.prop]`
-4. **Lifecycle Hooks**: Uses Vue's `onMounted` instead of Angular's `ngOnInit`
-5. **Build Tool**: Uses Vite instead of Angular CLI
+3. **App.vue** - Use the custom element in your template:
+   ```vue
+   <metabase-dashboard
+     :dashboard-id="dashboardId"
+     with-title="true"
+     with-downloads="false"
+   />
+   ```
 
 ## Learn More
 
-- [Metabase Embedded Analytics SDK Documentation](https://www.metabase.com/docs/latest/embedding/sdk)
-- [Vue 3 Documentation](https://vuejs.org/)
-- [Vite Documentation](https://vitejs.dev/)
-
-## License
-
-MIT
+- [Metabase SDK Docs](https://www.metabase.com/docs/latest/embedding/sdk)
+- [Vue 3 Docs](https://vuejs.org/)
